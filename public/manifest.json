@@ -1,0 +1,8 @@
+{
+  "manifest_version": 3,
+  "name": "Cockpit",
+  "description": "Persönliches Dashboard als neuer Tab: Aufgaben, Notizen, Lesezeichen, Pomodoro und Uhr.",
+  "version": "0.1.0",
+  "chrome_url_overrides": { "newtab": "index.html" },
+  "permissions": ["notifications"]
+}

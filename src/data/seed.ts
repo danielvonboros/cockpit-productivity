@@ -2,12 +2,13 @@ import type { AppData, PomodoroSettings, Settings, TileConfig } from '../types/m
 import { DEFAULT_THEME } from '../themes';
 import { idlePhase } from '../lib/pomodoro';
 
+/** Order chosen so the 2×2 bookmarks sit next to tasks and notes without gaps on three columns */
 export const DEFAULT_LAYOUT: TileConfig[] = [
-  { id: 'clock', visible: true, wide: true },
-  { id: 'pomodoro', visible: true, wide: false },
-  { id: 'tasks', visible: true, wide: false },
-  { id: 'notes', visible: true, wide: false },
-  { id: 'bookmarks', visible: true, wide: false },
+  { id: 'clock', visible: true, size: 2 },
+  { id: 'pomodoro', visible: true, size: 1 },
+  { id: 'bookmarks', visible: true, size: 4 },
+  { id: 'tasks', visible: true, size: 1 },
+  { id: 'notes', visible: true, size: 1 },
 ];
 
 export const DEFAULT_POMODORO: PomodoroSettings = {

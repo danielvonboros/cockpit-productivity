@@ -90,11 +90,13 @@ export interface DayStats {
 
 export type TileId = 'clock' | 'pomodoro' | 'tasks' | 'notes' | 'bookmarks';
 
+/** Grid fields a tile covers: 1 = 1×1, 2 = 2×1, 4 = 2×2, 8 = 4×2 (columns capped by screen width) */
+export type TileSize = 1 | 2 | 4 | 8;
+
 export interface TileConfig {
   id: TileId;
   visible: boolean;
-  /** Spans two grid columns when there is room */
-  wide: boolean;
+  size: TileSize;
 }
 
 export interface Settings {

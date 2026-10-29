@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Id, Task } from '../types/models';
+import type { Id, Task, TaskList } from '../types/models';
 import {
   addStep, addTask, clearDoneTasks, deleteTask, moveTask, removeStep, renameTask, restoreTasks, setFocus, toggleStep,
   toggleTask, useAppData,
@@ -18,11 +18,20 @@ const EMPTY_TEXT: Record<View, string> = {
   done: 'Noch nichts erledigt. Das kommt.',
 };
 
+const COLUMNS: { view: View; label: string }[] = [
+  { view: 'today', label: 'Heute' },
+  { view: 'later', label: 'Später' },
+  { view: 'done', label: 'Erledigt' },
+];
+
+/**
+ * One list at a time with tabs; once the tile is wide enough (4 or 8 fields)
+ * the same three lists stand side by side as a board.
+ */
 export function TasksTile() {
   const data = useAppData();
   const toast = useToast();
   const [view, setView] = useState<View>('today');
-  const [draft, setDraft] = useState('');
   const [openId, setOpenId] = useState<Id | null>(null);
 
   const open = data.tasks.filter((task) => !task.done);
@@ -31,7 +40,6 @@ export function TasksTile() {
     later: open.filter((task) => task.list === 'later'),
     done: data.tasks.filter((task) => task.done).sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? '')),
   };
-  const visible = lists[view];
 
   const complete = (task: Task) => {
     const done = toggleTask(task.id);
@@ -59,60 +67,79 @@ export function TasksTile() {
         label="Liste"
         value={view}
         onChange={setView}
-        options={[
-          { value: 'today', label: 'Heute', count: lists.today.length },
-          { value: 'later', label: 'Später', count: lists.later.length },
-          { value: 'done', label: 'Erledigt', count: lists.done.length },
-        ]}
+        options={COLUMNS.map((column) => ({ value: column.view, label: column.label, count: lists[column.view].length }))}
       />
 
-      <ul className="list scroll">
-        {visible.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            isFocus={data.focusTaskId === task.id}
-            open={openId === task.id}
-            onToggleOpen={() => setOpenId(openId === task.id ? null : task.id)}
-            onComplete={() => (task.done ? toggleTask(task.id) : complete(task))}
-            onDelete={() => remove(task)}
-          />
-        ))}
-        {visible.length === 0 && <li className="empty">{EMPTY_TEXT[view]}</li>}
-      </ul>
+      <div className="task-board">
+        {COLUMNS.map((column) => (
+          <section
+            key={column.view}
+            className={`task-col${column.view === view ? ' is-current' : ''}`}
+            aria-label={column.label}
+          >
+            <h3 className="sublabel task-col__head">
+              {column.label}
+              <span className="task-col__count">{lists[column.view].length}</span>
+            </h3>
 
-      {view === 'done' ? (
-        lists.done.length > 0 && (
-          <div className="tile__foot">
-            <button type="button" className="btn btn--ghost" onClick={clearDone}>
-              <Icon name="trash" size={15} />
-              Erledigte entfernen
-            </button>
-          </div>
-        )
-      ) : (
-        <form
-          className="add-row"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (!draft.trim()) return;
-            addTask(draft, view);
-            setDraft('');
-          }}
-        >
-          <input
-            className="add-row__input"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder={view === 'today' ? 'Neue Aufgabe für heute …' : 'Für später merken …'}
-            aria-label="Neue Aufgabe"
-          />
-          <button type="submit" className="icon-btn icon-btn--strong" aria-label="Aufgabe hinzufügen">
-            <Icon name="plus" size={16} />
-          </button>
-        </form>
-      )}
+            <ul className="list scroll">
+              {lists[column.view].map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  isFocus={data.focusTaskId === task.id}
+                  open={openId === task.id}
+                  onToggleOpen={() => setOpenId(openId === task.id ? null : task.id)}
+                  onComplete={() => (task.done ? toggleTask(task.id) : complete(task))}
+                  onDelete={() => remove(task)}
+                />
+              ))}
+              {lists[column.view].length === 0 && <li className="empty">{EMPTY_TEXT[column.view]}</li>}
+            </ul>
+
+            {column.view === 'done' ? (
+              lists.done.length > 0 && (
+                <div className="tile__foot">
+                  <button type="button" className="btn btn--ghost" onClick={clearDone}>
+                    <Icon name="trash" size={15} />
+                    Erledigte entfernen
+                  </button>
+                </div>
+              )
+            ) : (
+              <AddTaskForm list={column.view} />
+            )}
+          </section>
+        ))}
+      </div>
     </Tile>
+  );
+}
+
+function AddTaskForm({ list }: { list: TaskList }) {
+  const [draft, setDraft] = useState('');
+
+  return (
+    <form
+      className="add-row"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!draft.trim()) return;
+        addTask(draft, list);
+        setDraft('');
+      }}
+    >
+      <input
+        className="add-row__input"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        placeholder={list === 'today' ? 'Neue Aufgabe für heute …' : 'Für später merken …'}
+        aria-label={list === 'today' ? 'Neue Aufgabe für heute' : 'Neue Aufgabe für später'}
+      />
+      <button type="submit" className="icon-btn icon-btn--strong" aria-label="Aufgabe hinzufügen">
+        <Icon name="plus" size={16} />
+      </button>
+    </form>
   );
 }
 

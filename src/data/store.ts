@@ -6,6 +6,7 @@ import type {
 import { isThemeSetting } from '../themes';
 import { timestampToLocalDate, toLocalDate } from '../lib/dates';
 import { MAX_PHASE_MIN, MIN_PHASE_MIN, idlePhase, nextPhase, remainingMs } from '../lib/pomodoro';
+import { isTileSize } from '../lib/tiles';
 import { DEFAULT_LAYOUT, emptyData, starterData } from './seed';
 
 /**
@@ -20,7 +21,16 @@ const STORAGE_KEY = 'cockpit:data';
 
 // ── Load & normalize ───────────────────────────────
 
-function mergeLayout(stored: TileConfig[] | undefined): TileConfig[] {
+/** Saved before tile sizes existed, when there was only a `wide` flag */
+type StoredTile = Partial<TileConfig> & { id: TileId; wide?: boolean };
+
+function mergeLayout(stored: StoredTile[] | undefined): TileConfig[] {
+  // Old saves keep which tiles are visible and get the new default arrangement
+  if (stored?.length && stored.every((tile) => !isTileSize(tile.size))) {
+    const visible = new Map(stored.map((tile) => [tile.id, tile.visible !== false]));
+    return DEFAULT_LAYOUT.map((tile) => ({ ...tile, visible: visible.get(tile.id) ?? tile.visible }));
+  }
+
   const defaults = new Map(DEFAULT_LAYOUT.map((tile) => [tile.id, tile]));
   const seen = new Set<TileId>();
   const layout: TileConfig[] = [];
@@ -28,7 +38,11 @@ function mergeLayout(stored: TileConfig[] | undefined): TileConfig[] {
     const fallback = defaults.get(tile.id);
     if (!fallback || seen.has(tile.id)) continue;
     seen.add(tile.id);
-    layout.push({ ...fallback, ...tile });
+    layout.push({
+      id: tile.id,
+      visible: tile.visible ?? fallback.visible,
+      size: isTileSize(tile.size) ? tile.size : fallback.size,
+    });
   }
   // Tiles added in a later version show up at the end
   for (const tile of DEFAULT_LAYOUT) if (!seen.has(tile.id)) layout.push({ ...tile });

@@ -50,8 +50,10 @@ und Website haben also getrennte Daten (Umzug per Export/Import).
 - **Notizen**: Schnellerfassung unten (Enter), ausführlich über +. Speichert beim Tippen.
 - **Lesezeichen**: in Gruppen; der Stift schaltet Umbenennen und Entfernen frei.
 - **Fokusmodus** (oben rechts) blendet alles außer Uhr, Fokus und Pomodoro aus.
-- **Kacheln**: am Griff (erscheint beim Darüberfahren) verschieben; Sichtbarkeit, Breite und
-  Reihenfolge auch in den Einstellungen.
+- **Kacheln**: am Griff (erscheint beim Darüberfahren) verschieben. Größe über das Feld-Symbol
+  daneben oder in den Einstellungen: 1 Feld, 2 nebeneinander, 4 als Quadrat, 8 so breit wie möglich
+  und zwei hoch. Große Kacheln nutzen den Platz: Aufgaben als Board (Heute | Später | Erledigt),
+  Notizen als Karten, Lesezeichen als große Schnellwahl. Auf dem Handy stehen alle untereinander.
 
 ## Daten
 

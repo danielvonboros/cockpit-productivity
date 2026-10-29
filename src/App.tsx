@@ -4,6 +4,8 @@ import { moveTile, updateSettings, useAppData } from './data/store';
 import { useTheme } from './hooks/useTheme';
 import { Icon } from './components/Icon';
 import { TileBoundary } from './components/TileBoundary';
+import { TileSlotContext } from './hooks/useTileSlot';
+import { TILE_SHAPES } from './lib/tiles';
 import { ClockTile } from './tiles/ClockTile';
 import { PomodoroTile } from './tiles/PomodoroTile';
 import { PomodoroEngine } from './tiles/PomodoroEngine';
@@ -94,11 +96,12 @@ function TileSlot({ tile, drag, setDrag }: TileSlotProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { label, Component } = TILES[tile.id];
   const isOver = drag?.over === tile.id && drag.id !== tile.id;
+  const shape = TILE_SHAPES[tile.size];
 
   return (
     <div
       ref={ref}
-      className={`slot${tile.wide ? ' slot--wide' : ''}${drag?.id === tile.id ? ' is-dragging' : ''}${isOver ? ' is-over' : ''}`}
+      className={`slot slot--c${shape.cols} slot--r${shape.rows}${drag?.id === tile.id ? ' is-dragging' : ''}${isOver ? ' is-over' : ''}`}
       draggable={armed}
       onPointerDown={(event) => setArmed(Boolean((event.target as Element).closest('[data-drag-handle]')))}
       onPointerUp={() => setArmed(false)}
@@ -124,9 +127,11 @@ function TileSlot({ tile, drag, setDrag }: TileSlotProps) {
         setArmed(false);
       }}
     >
-      <TileBoundary label={label}>
-        <Component />
-      </TileBoundary>
+      <TileSlotContext.Provider value={tile}>
+        <TileBoundary label={label}>
+          <Component />
+        </TileBoundary>
+      </TileSlotContext.Provider>
     </div>
   );
 }

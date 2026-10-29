@@ -8,6 +8,7 @@ import { toLocalDate } from '../lib/dates';
 import { chime, notificationsSupported, requestNotifications, unlockAudio } from '../lib/signals';
 import { useToast } from '../hooks/useToast';
 import { Icon } from '../components/Icon';
+import { SizePicker } from '../components/SizePicker';
 
 const TILE_LABELS: Record<TileId, string> = {
   clock: 'Uhr & Fokus',
@@ -132,7 +133,7 @@ export function SettingsDrawer({ onClose }: { onClose: () => void }) {
 
           <section className="setting-group">
             <h3 className="sublabel">Kacheln</h3>
-            <p className="hint">Reihenfolge per Pfeil oder direkt am Griff einer Kachel ziehen. „Breit“ nutzt zwei Spalten, wenn Platz ist.</p>
+            <p className="hint">Reihenfolge per Pfeil oder direkt am Griff einer Kachel ziehen. Die Größe zählt Felder: 1, 2 nebeneinander, 4 als Quadrat, 8 so breit wie möglich und zwei hoch. Auch über das Feld-Symbol oben in jeder Kachel.</p>
             <ul className="tile-rows">
               {settings.layout.map((tile, index) => (
                 <li key={tile.id} className="tile-row">
@@ -145,14 +146,11 @@ export function SettingsDrawer({ onClose }: { onClose: () => void }) {
                     onClick={() => updateTile(tile.id, { visible: !tile.visible })}
                   />
                   <span className={`tile-row__name${tile.visible ? '' : ' is-off'}`}>{TILE_LABELS[tile.id]}</span>
-                  <button
-                    type="button"
-                    className="chip chip--toggle"
-                    aria-pressed={tile.wide}
-                    onClick={() => updateTile(tile.id, { wide: !tile.wide })}
-                  >
-                    Breit
-                  </button>
+                  <SizePicker
+                    label={`Größe ${TILE_LABELS[tile.id]}`}
+                    value={tile.size}
+                    onChange={(size) => updateTile(tile.id, { size })}
+                  />
                   <button
                     type="button"
                     className="icon-btn icon-btn--sm"

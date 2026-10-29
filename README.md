@@ -25,7 +25,18 @@ Erweiterungsliste auf „Neu laden“ klicken. `public/manifest.json` ist die Er
 
 Firefox: `about:debugging` → „Temporäres Add-on laden“ → `dist/manifest.json` (bleibt nur bis zum
 Neustart, dauerhaft braucht Firefox eine Signatur).
-Safari kann den neuen Tab nur auf eine Web-Adresse setzen; dafür müsste `dist/` gehostet werden.
+
+## Als Website (Vercel)
+
+Jeder Push auf `main` geht automatisch auf https://cockpit-productivity.vercel.app online, andere
+Branches bekommen eine eigene Vorschau-Adresse. Einstellungen: Vercel-Projekt `cockpit-productivity`,
+Preset Vite, Ausgabe `dist`.
+
+Safari: Einstellungen › Allgemein › „Neue Fenster/Tabs öffnen mit: Homepage“ und als Homepage die
+Adresse oben eintragen. Eine Safari-Erweiterung bräuchte einen Apple-Developer-Account.
+
+Bis zum Login liegen die Daten auch auf der Website nur im jeweiligen Browser – Safari, Chrome-Erweiterung
+und Website haben also getrennte Daten (Umzug per Export/Import).
 
 ## Bedienung
 

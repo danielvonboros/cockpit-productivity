@@ -50,7 +50,8 @@ const WELCOME_NOTE = `Willkommen im Cockpit
 Kurz erklärt:
 • Aufgaben: Klick auf den Titel öffnet kleine Schritte. ◎ macht eine Aufgabe zum Fokus.
 • Pomodoro: Die Mitte startet und pausiert, + und − ändern die Zeit, ↺ setzt zurück, ⏭ springt zur nächsten Phase.
-• Kacheln lassen sich am Griff oben rechts verschieben. Breite, Sichtbarkeit und Design unter Einstellungen.
+• Lesezeichen: Klick ins Feld öffnet den Lesezeichen-Raum. Dort per Ziehen anordnen, ein Lesezeichen auf ein anderes ziehen ergibt einen Ordner. Neue Seiten: Adresse hineinziehen oder einfügen.
+• Kacheln lassen sich am Griff oben rechts verschieben. Größe, Sichtbarkeit und Design unter Einstellungen.
 • Fokusmodus (oben rechts) blendet alles außer Uhr, Fokus und Timer aus.
 • Alles bleibt lokal in diesem Browser. Sicherung: Einstellungen › Daten › Exportieren.`;
 
@@ -79,13 +80,16 @@ export function starterData(now: Date): AppData {
   ];
   data.notes = [{ id: id(), body: WELCOME_NOTE, pinned: true, createdAt: stamp, updatedAt: stamp }];
   data.bookmarks = [
+    { kind: 'link', id: id(), title: 'Claude', url: 'https://claude.ai', pos: { q: 0, r: 0 } },
+    { kind: 'link', id: id(), title: 'Figma', url: 'https://www.figma.com', pos: { q: 1, r: 0 } },
     {
+      kind: 'folder',
       id: id(),
-      name: 'Start',
+      name: 'Entwicklung',
+      pos: { q: 0, r: 1 },
       items: [
-        { id: id(), title: 'Claude', url: 'https://claude.ai' },
-        { id: id(), title: 'GitHub', url: 'https://github.com' },
-        { id: id(), title: 'Figma', url: 'https://www.figma.com' },
+        { kind: 'link', id: id(), title: 'GitHub', url: 'https://github.com', pos: { q: 0, r: 0 } },
+        { kind: 'link', id: id(), title: 'Vercel', url: 'https://vercel.com', pos: { q: 1, r: 0 } },
       ],
     },
   ];

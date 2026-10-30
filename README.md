@@ -48,7 +48,13 @@ und Website haben also getrennte Daten (Umzug per Export/Import).
 - **Pomodoro**: Mitte startet und pausiert, + / − ändern die Zeit um eine Minute, ↺ setzt zurück,
   ⏭ springt zur nächsten Phase. Läuft über alle offenen Tabs hinweg und klingelt nur einmal.
 - **Notizen**: Schnellerfassung unten (Enter), ausführlich über +. Speichert beim Tippen.
-- **Lesezeichen**: in Gruppen; der Stift schaltet Umbenennen und Entfernen frei.
+- **Lesezeichen**: Die Kachel zeigt das Wabenraster als Vorschau. Ein Klick ins leere Feld (oder ⤢)
+  öffnet den Lesezeichen-Raum: dort per Ziehen auf dem Hexagon-Raster anordnen, ein Lesezeichen auf
+  ein anderes ziehen ergibt einen Ordner, auf einen Ordner ziehen legt es hinein. Ordner öffnen sich
+  wie auf dem iPhone und haben ihr eigenes Raster; über den Rand ziehen nimmt etwas heraus.
+  Neu anlegen: das Symbol links in der Adressleiste (oder einen Link) auf die Kachel, in den Raum oder
+  in einen Ordner ziehen, eine Adresse mit ⌘V einfügen oder über +. Tabs direkt aus der Tab-Leiste
+  lassen die Browser nicht in Webseiten fallen.
 - **Fokusmodus** (oben rechts) blendet alles außer Uhr, Fokus und Pomodoro aus.
 - **Kacheln**: am Griff (erscheint beim Darüberfahren) verschieben. Größe über das Feld-Symbol
   daneben oder in den Einstellungen: 1 Feld, 2 nebeneinander, 4 als Quadrat, 8 so breit wie möglich

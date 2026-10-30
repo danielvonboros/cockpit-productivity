@@ -6,6 +6,7 @@ import { Icon } from './components/Icon';
 import { TileBoundary } from './components/TileBoundary';
 import { TileSlotContext } from './hooks/useTileSlot';
 import { TILE_SHAPES } from './lib/tiles';
+import { TILE_DRAG_TYPE } from './lib/links';
 import { ClockTile } from './tiles/ClockTile';
 import { PomodoroTile } from './tiles/PomodoroTile';
 import { PomodoroEngine } from './tiles/PomodoroEngine';
@@ -107,7 +108,7 @@ function TileSlot({ tile, drag, setDrag }: TileSlotProps) {
       onPointerUp={() => setArmed(false)}
       onDragStart={(event) => {
         event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', tile.id);
+        event.dataTransfer.setData(TILE_DRAG_TYPE, tile.id);
         if (ref.current) event.dataTransfer.setDragImage(ref.current, ref.current.offsetWidth - 30, 30);
         setDrag({ id: tile.id });
       }}

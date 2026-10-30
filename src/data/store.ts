@@ -1,12 +1,16 @@
 import { useSyncExternalStore } from 'react';
 import type {
-  AppData, Bookmark, DayStats, Id, LocalDate, Note, PomodoroMode, PomodoroSettings, Settings, Task, TaskList,
-  TileConfig, TileId,
+  AppData, BookmarkLink, BookmarkNode, DayStats, Hex, Id, LocalDate, Note, PomodoroMode, PomodoroSettings, Settings,
+  Task, TaskList, TileConfig, TileId,
 } from '../types/models';
 import { isThemeSetting } from '../themes';
 import { timestampToLocalDate, toLocalDate } from '../lib/dates';
 import { MAX_PHASE_MIN, MIN_PHASE_MIN, idlePhase, nextPhase, remainingMs } from '../lib/pomodoro';
 import { isTileSize } from '../lib/tiles';
+import { titleFromUrl } from '../lib/links';
+import {
+  dissolveFolder, dropNode, moveOutOfFolder, normalizeBookmarks, placeLink, removeLink, renameFolder, updateLink,
+} from './bookmarkTree';
 import { DEFAULT_LAYOUT, emptyData, starterData } from './seed';
 
 /**
@@ -70,7 +74,7 @@ function normalize(raw: unknown): AppData {
     version: 1,
     tasks: (input.tasks ?? []).map((task) => ({ ...task, steps: task.steps ?? [] })),
     notes: Array.isArray(input.notes) ? input.notes : [],
-    bookmarks: Array.isArray(input.bookmarks) ? input.bookmarks : [],
+    bookmarks: normalizeBookmarks(input.bookmarks),
     stats: input.stats ?? {},
     pomodoro: input.pomodoro ?? idlePhase('focus', settings.pomodoro, 0),
     settings,
@@ -313,77 +317,51 @@ export function restoreNote({ note, index }: { note: Note; index: number }) {
 
 // ── Bookmarks ──────────────────────────────────────
 
-/** Accepts "example.com" as well as full URLs; undefined if it can't be a web address */
-export function normalizeUrl(input: string): string | undefined {
-  const value = input.trim();
-  if (!value) return undefined;
-  const withScheme = /^[a-z][a-z\d+.-]*:/i.test(value) ? value : `https://${value}`;
-  try {
-    const url = new URL(withScheme);
-    if (!['http:', 'https:'].includes(url.protocol) || !url.hostname.includes('.')) {
-      return url.protocol === 'http:' && url.hostname === 'localhost' ? url.href : undefined;
-    }
-    return url.href;
-  } catch {
-    return undefined;
-  }
+function updateBookmarks(change: (nodes: BookmarkNode[]) => BookmarkNode[]) {
+  update((current) => ({ ...current, bookmarks: change(current.bookmarks) }));
 }
 
-export function addBookmark(groupName: string, title: string, url: string) {
-  const name = groupName.trim() || 'Allgemein';
-  const bookmark: Bookmark = { id: newId(), title: title.trim() || new URL(url).hostname.replace(/^www\./, ''), url };
-  update((current) => {
-    const group = current.bookmarks.find((item) => item.name.toLowerCase() === name.toLowerCase());
-    return {
-      ...current,
-      bookmarks: group
-        ? current.bookmarks.map((item) => (item === group ? { ...item, items: [...item.items, bookmark] } : item))
-        : [...current.bookmarks, { id: newId(), name, items: [bookmark] }],
-    };
+export function addBookmarkLink(url: string, title: string, options: { folderId?: Id; at?: Hex } = {}): BookmarkLink {
+  const link: BookmarkLink = { kind: 'link', id: newId(), title: title.trim() || titleFromUrl(url), url, pos: { q: 0, r: 0 } };
+  updateBookmarks((nodes) => placeLink(nodes, link, options));
+  return link;
+}
+
+/** Drag & drop inside a container; returns the id of a folder that was just created */
+export function dropBookmark(id: Id, folderId: Id | undefined, target: Hex): Id | undefined {
+  let created: Id | undefined;
+  updateBookmarks((nodes) => {
+    const result = dropNode(nodes, id, folderId, target, newId);
+    created = result.createdFolderId;
+    return result.nodes;
   });
+  return created;
 }
 
-export interface RemovedBookmark {
-  groupName: string;
-  groupIndex: number;
-  bookmark: Bookmark;
-  index: number;
+export function moveBookmarkOut(folderId: Id, linkId: Id) {
+  updateBookmarks((nodes) => moveOutOfFolder(nodes, folderId, linkId));
 }
 
-export function deleteBookmark(groupId: Id, bookmarkId: Id): RemovedBookmark | undefined {
-  const groupIndex = data.bookmarks.findIndex((group) => group.id === groupId);
-  const group = data.bookmarks[groupIndex];
-  const index = group?.items.findIndex((item) => item.id === bookmarkId) ?? -1;
-  if (!group || index < 0) return undefined;
-  update((current) => ({
-    ...current,
-    bookmarks: current.bookmarks
-      .map((item) => (item.id === groupId ? { ...item, items: item.items.filter((entry) => entry.id !== bookmarkId) } : item))
-      // Empty groups disappear on their own
-      .filter((item) => item.items.length > 0),
-  }));
-  return { groupName: group.name, groupIndex, bookmark: group.items[index], index };
+export function deleteBookmarkLink(linkId: Id) {
+  updateBookmarks((nodes) => removeLink(nodes, linkId));
 }
 
-export function restoreBookmark({ groupName, groupIndex, bookmark, index }: RemovedBookmark) {
-  update((current) => {
-    const group = current.bookmarks.find((item) => item.name === groupName);
-    if (group?.items.some((item) => item.id === bookmark.id)) return current;
-    return {
-      ...current,
-      bookmarks: group
-        ? current.bookmarks.map((item) => (item === group ? { ...item, items: insertAt(item.items, bookmark, index) } : item))
-        : insertAt(current.bookmarks, { id: newId(), name: groupName, items: [bookmark] }, groupIndex),
-    };
-  });
+export function dissolveBookmarkFolder(folderId: Id) {
+  updateBookmarks((nodes) => dissolveFolder(nodes, folderId));
 }
 
-export function renameBookmarkGroup(groupId: Id, name: string) {
+export function updateBookmarkLink(linkId: Id, patch: Pick<BookmarkLink, 'title' | 'url'>) {
+  updateBookmarks((nodes) => updateLink(nodes, linkId, patch));
+}
+
+export function renameBookmarkFolder(folderId: Id, name: string) {
   if (!name.trim()) return;
-  update((current) => ({
-    ...current,
-    bookmarks: current.bookmarks.map((group) => (group.id === groupId ? { ...group, name: name.trim() } : group)),
-  }));
+  updateBookmarks((nodes) => renameFolder(nodes, folderId, name.trim()));
+}
+
+/** Undo for bookmark changes: put back an earlier snapshot */
+export function replaceBookmarks(nodes: BookmarkNode[]) {
+  updateBookmarks(() => nodes);
 }
 
 // ── Settings & layout ──────────────────────────────

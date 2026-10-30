@@ -39,17 +39,30 @@ export interface Note {
   updatedAt: Timestamp;
 }
 
-export interface Bookmark {
+/** Cell on the hexagon grid, axial coordinates */
+export interface Hex {
+  q: number;
+  r: number;
+}
+
+export interface BookmarkLink {
+  kind: 'link';
   id: Id;
   title: string;
   url: string;
+  pos: Hex;
 }
 
-export interface BookmarkGroup {
+/** Like an iPhone folder: holds links on its own hexagon grid, never other folders */
+export interface BookmarkFolder {
+  kind: 'folder';
   id: Id;
   name: string;
-  items: Bookmark[];
+  pos: Hex;
+  items: BookmarkLink[];
 }
+
+export type BookmarkNode = BookmarkLink | BookmarkFolder;
 
 // ── Pomodoro ───────────────────────────────────────
 
@@ -113,7 +126,8 @@ export interface AppData {
   version: 1;
   tasks: Task[];
   notes: Note[];
-  bookmarks: BookmarkGroup[];
+  /** Top level of the bookmark space; every node has its own cell */
+  bookmarks: BookmarkNode[];
   focusTaskId?: Id;
   pomodoro: PomodoroState;
   stats: Record<LocalDate, DayStats>;
